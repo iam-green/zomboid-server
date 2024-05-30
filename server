@@ -1,0 +1,40 @@
+#!/bin/bash
+set_timezone() {
+  if [ $TZ ]; then
+    ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
+  fi
+}
+
+create_directory() {
+  mkdir -p /steam /zomboid /data /home/steam
+  ln -s /data /home/steam/Zomboid
+}
+
+download_steamcmd() {
+  cd /steam
+  curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+}
+
+download_zomboid() {
+  echo -e "@ShutdownOnFailedCommand 1\n@NoPromptForPassword 1\nforce_install_dir /zomboid/\nlogin anonymous\napp_update 380870 validate\nquit" >/steam/zomboid.txt
+  /steam/steamcmd.sh +runscript /steam/zomboid.txt
+  cat /zomboid/ProjectZomboid64.json | jq --arg ram "-Xmx$RAM" '.vmArgs[1] |= $ram' > ./tmp.json
+  mv ./tmp.json /zomboid/ProjectZomboid64.json
+}
+
+create_group_user() {
+  useradd steam
+  chown -R steam /home/steam /steam /zomboid /data
+  chmod -R 777 /home/steam /steam /zomboid /data
+}
+
+run_server () {
+  sudo -u steam /zomboid/start-server.sh -servername $SERVER_NAME -adminusername $ADMIN_USERNAME -adminpassword $ADMIN_PASSWORD
+}
+
+set_timezone
+create_directory
+download_steamcmd
+download_zomboid
+create_group_user
+run_server
