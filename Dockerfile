@@ -2,7 +2,7 @@ FROM ubuntu:24.04
 ARG DEBIAN_FRONTEND=noninteractive
 ENV DATA_DIRECTORY=/data \
   STEAM_DIRECTORY=/steam \
-  ZOMBIE_DIRECTORY=/zomboid \
+  ZOMBOID_DIRECTORY=/zomboid \
   RAM=8192M \
   TZ=Asia/Seoul \
   SERVER_NAME=pzserver \
