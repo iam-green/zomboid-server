@@ -6,30 +6,32 @@ set_timezone() {
 }
 
 create_directory() {
-  mkdir -p /steam /zomboid /data /home/steam
-  ln -s /data /home/steam/Zomboid
+  mkdir -p $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY /home/steam
+  ln -s $DATA_DIRECTORY /home/steam/Zomboid
 }
 
 download_steamcmd() {
-  cd /steam
+  cd $STEAM_DIRECTORY
   curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
 }
 
 download_zomboid() {
-  echo -e "@ShutdownOnFailedCommand 1\n@NoPromptForPassword 1\nforce_install_dir /zomboid/\nlogin anonymous\napp_update 380870 validate\nquit" >/steam/zomboid.txt
-  /steam/steamcmd.sh +runscript /steam/zomboid.txt
-  cat /zomboid/ProjectZomboid64.json | jq --arg ram "-Xmx$RAM" '.vmArgs[1] |= $ram' > ./tmp.json
-  mv ./tmp.json /zomboid/ProjectZomboid64.json
+  echo -e "@ShutdownOnFailedCommand 1\n@NoPromptForPassword 1\nforce_install_dir $ZOMBOID_DIRECTORY/\nlogin anonymous\napp_update 380870 validate\nquit" >$STEAM_DIRECTORY/zomboid.txt
+  $STEAM_DIRECTORY/steamcmd.sh +runscript $STEAM_DIRECTORY/zomboid.txt
+  cat $ZOMBOID_DIRECTORY/ProjectZomboid64.json | jq --arg ram "-Xmx$RAM" '.vmArgs[1] |= $ram' > ./tmp.json
+  mv ./tmp.json $ZOMBOID_DIRECTORY/ProjectZomboid64.json
 }
 
 create_group_user() {
   useradd steam
-  chown -R steam /home/steam /steam /zomboid /data
-  chmod -R 777 /home/steam /steam /zomboid /data
+  chown -R steam /home/steam $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY
+  chmod -R 777 /home/steam $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY
 }
 
-run_server () {
-  sudo -u steam /zomboid/start-server.sh -servername $SERVER_NAME -adminusername $ADMIN_USERNAME -adminpassword $ADMIN_PASSWORD
+run_server() {
+  sudo -u steam $ZOMBOID_DIRECTORY/start-server.sh -servername $SERVER_NAME -adminusername $ADMIN_USERNAME -adminpassword $ADMIN_PASSWORD
+  chown -R steam /home/steam $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY
+  chmod -R 777 /home/steam $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY
 }
 
 set_timezone
