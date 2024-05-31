@@ -1,6 +1,8 @@
 FROM ubuntu:24.04
 ARG DEBIAN_FRONTEND=noninteractive
-ENV DATA_DIRECTORY=/data \
+ENV UID=1000 \
+  GID=1000 \
+  DATA_DIRECTORY=/data \
   STEAM_DIRECTORY=/steam \
   ZOMBOID_DIRECTORY=/zomboid \
   RAM=8192M \

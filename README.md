@@ -15,6 +15,8 @@ docker create -it -name zomboid-server \
 |Environment Name|Description|Default Value|
 |:-:|:-:|:-:|
 |TZ|Set Timezone|`Asia/Seoul`|
+|UID|Set User ID|`1000`|
+|GID|Set Group ID|`1000`|
 |RAM|Set Project Zomboid Server RAM|`8192M`|
 |SERVER_NAME|Set Project Zomboid Server Name|`pzserver`|
 |ADMIN_USERNAME|Set Project Zomboid Admin Username|`root`|
