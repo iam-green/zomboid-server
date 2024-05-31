@@ -5,9 +5,27 @@ set_timezone() {
   fi
 }
 
+create_group_user() {
+  if [ ! $UID ] || [ ! $GID ] || id -u $UID >/dev/null 2>&1 || getent group $GID >/dev/null 2>&1; then
+    USER=$(getent passwd "$UID" | cut -d: -f1)
+    return 0
+  fi
+
+  if ! grep -q ":$GID:" /etc/group; then
+    groupadd -g "$GID" steam
+  fi
+
+  if ! id "$UID" &>/dev/null; then
+    useradd -u "$UID" -g "$GID" -m steam
+  fi
+
+  USER=$(getent passwd "$UID" | cut -d: -f1)
+}
+
 create_directory() {
-  mkdir -p $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY /home/steam
-  ln -s $DATA_DIRECTORY /home/steam/Zomboid
+  mkdir -p $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY /home/$USER
+  ln -s $DATA_DIRECTORY /home/$USER/Zomboid
+  chown -R $UID:$GID /home/$USER $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY
 }
 
 download_steamcmd() {
@@ -22,19 +40,13 @@ download_zomboid() {
   mv ./tmp.json $ZOMBOID_DIRECTORY/ProjectZomboid64.json
 }
 
-create_group_user() {
-  groupadd -g $GID steam
-  useradd -u $UID -g $GID -m steam
-  chown -R $UID:$GID /home/steam $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY
-}
-
 run_server() {
-  sudo -u steam $ZOMBOID_DIRECTORY/start-server.sh -servername $SERVER_NAME -adminusername $ADMIN_USERNAME -adminpassword $ADMIN_PASSWORD
+  sudo -u $USER $ZOMBOID_DIRECTORY/start-server.sh -servername $SERVER_NAME -adminusername $ADMIN_USERNAME -adminpassword $ADMIN_PASSWORD
 }
 
 set_timezone
+create_group_user
 create_directory
 download_steamcmd
 download_zomboid
-create_group_user
 run_server
