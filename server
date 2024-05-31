@@ -25,7 +25,6 @@ create_group_user() {
 create_directory() {
   mkdir -p $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY /home/$USER
   ln -s $DATA_DIRECTORY /home/$USER/Zomboid
-  chown -R $UID:$GID /home/$USER $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY
 }
 
 download_steamcmd() {
@@ -40,6 +39,10 @@ download_zomboid() {
   mv ./tmp.json $ZOMBOID_DIRECTORY/ProjectZomboid64.json
 }
 
+set_chown() {
+  chown -R $USER /home/$USER $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY
+}
+
 run_server() {
   sudo -u $USER $ZOMBOID_DIRECTORY/start-server.sh -servername $SERVER_NAME -adminusername $ADMIN_USERNAME -adminpassword $ADMIN_PASSWORD
 }
@@ -49,4 +52,5 @@ create_group_user
 create_directory
 download_steamcmd
 download_zomboid
+set_chown
 run_server
