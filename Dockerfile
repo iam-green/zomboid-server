@@ -9,7 +9,7 @@ ENV UID=1000 \
   RAM=8192M \
   TZ=Asia/Seoul \
   SERVER_NAME=pzserver \
-  ADMIN_USERNAME=root \
+  ADMIN_USERNAME=admin \
   ADMIN_PASSWORD=changeme
 RUN apt-get update -y && \
   apt-get install -y lib32gcc-s1 curl sudo jq && \

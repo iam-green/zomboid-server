@@ -19,7 +19,7 @@ docker create -it -name zomboid-server \
 |GID|Set Group ID|`1000`|
 |RAM|Set Project Zomboid Server RAM|`8192M`|
 |SERVER_NAME|Set Project Zomboid Server Name|`pzserver`|
-|ADMIN_USERNAME|Set Project Zomboid Admin Username|`root`|
+|ADMIN_USERNAME|Set Project Zomboid Admin Username|`admin`|
 |ADMIN_PASSWORD|Set Project Zomboid Admin Password|`changeme`|
 |DATA_DIRECTORY|Set Project Zomboid Data Directory|`/data`|
 |STEAM_DIRECTORY|Set Steam Directory|`/steam`|
