@@ -5,9 +5,9 @@ ram="8192M"
 server_name="pzserver"
 admin_username="admin"
 admin_password="changeme"
-data_directory=$(realpath ./data)
-game_directory=$(realpath ~/.past2l/zomboid)
-steam_directory=$(realpath ~/.past2l/steam)
+data_directory=./data
+game_directory=~/.past2l/zomboid
+steam_directory=~/.past2l/steam
 
 usage() {
   echo "Usage: $0 [OPTIONS]"
@@ -80,7 +80,7 @@ handle_argument() {
         usage
         exit 1
       fi
-      data_directory=$(realpath $(extract_argument $@))
+      data_directory=$(extract_argument $@)
       shift
       ;;
     -zd | --zomboid-directory)
@@ -89,7 +89,7 @@ handle_argument() {
         usage
         exit 1
       fi
-      game_directory=$(realpath $(extract_argument $@))
+      game_directory=$(extract_argument $@)
       shift
       ;;
     -sd | --steam-directory)
@@ -98,7 +98,7 @@ handle_argument() {
         usage
         exit 1
       fi
-      steam_directory=$(realpath $(extract_argument $@))
+      steam_directory=$(extract_argument $@)
       shift
       ;;
     -u | --update)
@@ -144,13 +144,15 @@ create_group_user() {
   USER=$(getent passwd "$UID" | cut -d: -f1)
 }
 
-#create_directory <steam_directory> <game_directory> <data_directory>
 create_directory() {
-  mkdir -p $1 $2 $3 /home/$USER
+  mkdir -p $steam_directory $game_directory $data_directory /home/$USER
+  steam_directory=$(realpath $steam_directory)
+  game_directory=$(realpath $game_directory)
+  data_directory=$(realpath $data_directory)
   if [ -h "/home/$USER/Zomboid" ] || [ -d "/home/$USER/Zomboid" ]; then
     rm -rf /home/$USER/Zomboid
   fi
-  ln -s $3 /home/$USER/Zomboid
+  ln -s $data_directory /home/$USER/Zomboid
 }
 
 #download_steamcmd <steam_directory>
@@ -173,7 +175,7 @@ setting_zomboid_server() {
 
 #set_chown <steam_directory> <game_directory> <data_directory>
 set_chown() {
-  chown -R $USER $1 $2 $3 /home/$USER/Zomboid
+  chown -R $USER $steam_directory $game_directory $data_directory /home/$USER/Zomboid
 }
 
 #run_server <server_name> <game_directory> <admin_username> <admin_password>
@@ -189,10 +191,10 @@ handle_argument "$@"
 
 set_timezone
 create_group_user
-create_directory $steam_directory $game_directory $data_directory
+create_directory
 download_steamcmd $steam_directory
 download_game 380870 $steam_directory $game_directory
 setting_zomboid_server $ram $game_directory $data_directory
-set_chown $steam_directory $game_directory $data_directory
+set_chown
 run_server $server_name $game_directory $admin_username $admin_password
 remove_steam_folder
