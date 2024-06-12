@@ -145,7 +145,18 @@ create_group_user() {
 }
 
 create_directory() {
-  mkdir -p $steam_directory $game_directory $data_directory /home/$USER
+  if [ ! -d $steam_directory ]; then
+    mkdir -p $steam_directory
+  fi
+  if [ ! -d $game_directory ]; then
+    mkdir -p $game_directory
+  fi
+  if [ ! -d $data_directory ]; then
+    mkdir -p $data_directory
+  fi
+  if [ $(uname) != "Darwin" ] && [ ! -d /home/$USER ]; then
+    mkdir -p /home/$USER
+  fi
   steam_directory=$(realpath $steam_directory)
   game_directory=$(realpath $game_directory)
   data_directory=$(realpath $data_directory)
