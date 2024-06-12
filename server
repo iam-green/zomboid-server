@@ -155,32 +155,31 @@ create_directory() {
   ln -s $data_directory /home/$USER/Zomboid
 }
 
-#download_steamcmd <steam_directory>
+#download_steamcmd
 download_steamcmd() {
   sudo apt-get install -y lib32gcc-s1 jq &>/dev/null
-  curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxf - -C $1
+  curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxf - -C $steam_directory
 }
 
-#download_game <game_id> <steam_directory> <game_directory>
+#download_game <game_id>
 download_game() {
-  echo -e "@ShutdownOnFailedCommand 1\n@NoPromptForPassword 1\nforce_install_dir $3/\nlogin anonymous\napp_update $1 validate\nquit" >$2/download.txt
-  $2/steamcmd.sh +runscript $2/download.txt
+  echo -e "@ShutdownOnFailedCommand 1\n@NoPromptForPassword 1\nforce_install_dir $game_directory/\nlogin anonymous\napp_update $1 validate\nquit" >$steam_directory/download.txt
+  $steam_directory/steamcmd.sh +runscript $steam_directory/download.txt
 }
 
-#setting_zomboid_server <ram> <game_directory> <data_directory>
+#setting_zomboid_server <ram>
 setting_zomboid_server() {
-  cat $2/ProjectZomboid64.json | jq --arg ram "-Xmx$1" '.vmArgs[1] |= $ram' >./tmp.json
-  mv ./tmp.json $2/ProjectZomboid64.json
+  cat $game_directory/ProjectZomboid64.json | jq --arg ram "-Xmx$1" '.vmArgs[1] |= $ram' >./tmp.json
+  mv ./tmp.json $game_directory/ProjectZomboid64.json
 }
 
-#set_chown <steam_directory> <game_directory> <data_directory>
 set_chown() {
   chown -R $USER $steam_directory $game_directory $data_directory /home/$USER/Zomboid
 }
 
 #run_server <server_name> <game_directory> <admin_username> <admin_password>
 run_server() {
-  sudo -u $USER $2/start-server.sh -servername $1 -adminusername $3 -adminpassword $4 &
+  sudo -u $USER $game_directory/start-server.sh -servername $1 -adminusername $2 -adminpassword $3 &
   local pid=$!
   wait $pid
   rm -rf /home/$USER/Steam
@@ -191,8 +190,8 @@ handle_argument "$@"
 set_timezone
 create_group_user
 create_directory
-download_steamcmd $steam_directory
-download_game 380870 $steam_directory $game_directory
-setting_zomboid_server $ram $game_directory $data_directory
+download_steamcmd
+download_game 380870
+setting_zomboid_server $ram
 set_chown
-run_server $server_name $game_directory $admin_username $admin_password
+run_server $server_name $admin_username $admin_password
