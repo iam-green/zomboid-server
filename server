@@ -180,10 +180,9 @@ set_chown() {
 
 #run_server <server_name> <game_directory> <admin_username> <admin_password>
 run_server() {
-  sudo -u $USER $2/start-server.sh -servername $1 -adminusername $3 -adminpassword $4
-}
-
-remove_steam_folder() {
+  sudo -u $USER $2/start-server.sh -servername $1 -adminusername $3 -adminpassword $4 &
+  local pid=$!
+  wait $pid
   rm -rf /home/$USER/Steam
 }
 
@@ -197,4 +196,3 @@ download_game 380870 $steam_directory $game_directory
 setting_zomboid_server $ram $game_directory $data_directory
 set_chown
 run_server $server_name $game_directory $admin_username $admin_password
-remove_steam_folder
