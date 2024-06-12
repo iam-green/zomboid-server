@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
 LABEL org.opencontainers.image.source https://github.com/past2l/zomboid-server
 ENV UID=1000 \
@@ -18,4 +18,6 @@ WORKDIR /tmp
 COPY server .
 RUN chmod +x server
 EXPOSE 8766/udp 8767/udp 16261/udp 16262/udp
-CMD ./server
+CMD ./server -r $RAM -n $SERVER_NAME \
+  --user $ADMIN_USERNAME --pass $ADMIN_PASSWORD \
+  -d $DATA_DIRECTORY -sd $STEAM_DIRECTORY -zd $ZOMBOID_DIRECTORY

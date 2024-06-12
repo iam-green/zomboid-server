@@ -24,3 +24,23 @@ docker create -it -name zomboid-server \
 |DATA_DIRECTORY|Set Project Zomboid Data Directory|`/data`|
 |STEAM_DIRECTORY|Set Steam Directory|`/steam`|
 |ZOMBOID_DIRECTORY|Set Project Zomboid File Directory|`/zomboid`|
+
+## Linux
+
+### Setup Command
+```batch
+chmod +x ./server && ./server
+```
+
+### Options
+```
+  -h, --help                               Show this help and exit
+  -r, --ram <ram_size>                     Select the amount of RAM you want to allocate to the server
+  -n, --name <server_name>                 Set the Zomboid server name
+  --user, --username <admin_username>      Set the Zomboid Admin Username
+  --pass, --password <admin_password>      Set the Zomboid Admin Password
+  -d, -dd, --data-directory <directory>    Select a location to store Zomboid data files
+  -zd, --zomboid-directory <directory>     Select the path to install the Zomboid Server
+  -sd, --steam-directory <directory>       Select the path to install the SteamCMD
+  -u, --update                             Update the script to the latest version
+```

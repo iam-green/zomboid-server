@@ -1,4 +1,126 @@
 #!/bin/bash
+set -e
+
+ram="8192M"
+server_name="pzserver"
+admin_username="admin"
+admin_password="changeme"
+data_directory=$(realpath ./data)
+game_directory=$(realpath ~/.past2l/zomboid)
+steam_directory=$(realpath ~/.past2l/steam)
+
+usage() {
+  echo "Usage: $0 [OPTIONS]"
+  echo "Options:"
+  echo " -h, --help                               Show this help and exit"
+  echo " -r, --ram <ram_size>                     Select the amount of RAM you want to allocate to the server"
+  echo " -n, --name <server_name>                 Set the Zomboid server name"
+  echo " --user, --username <admin_username>      Set the Zomboid Admin Username"
+  echo " --pass, --password <admin_password>      Set the Zomboid Admin Password"
+  echo " -d, -dd, --data-directory <directory>    Select a location to store Zomboid data files"
+  echo " -zd, --zomboid-directory <directory>     Select the path to install the Zomboid Server"
+  echo " -sd, --steam-directory <directory>       Select the path to install the SteamCMD"
+  echo " -u, --update                             Update the script to the latest version"
+}
+
+has_argument() {
+  [[ ("$1" == *=* && -n ${1#*=}) || (! -z "$2" && "$2" != -*) ]]
+}
+
+extract_argument() {
+  echo "${2:-${1#*=}}"
+}
+
+handle_argument() {
+  while [ $# -gt 0 ]; do
+    case $1 in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    -r | --ram)
+      if ! has_argument $@; then
+        echo "RAM not specified." >&2
+        usage
+        exit 1
+      fi
+      ram=$(extract_argument $@)
+      shift
+      ;;
+    -n | --name)
+      if ! has_argument $@; then
+        echo "Server Name not specified." >&2
+        usage
+        exit 1
+      fi
+      server_name=$(extract_argument $@)
+      shift
+      ;;
+    --user | --username)
+      if ! has_argument $@; then
+        echo "Username not specified." >&2
+        usage
+        exit 1
+      fi
+      admin_username=$(extract_argument $@)
+      shift
+      ;;
+    --pass | --password)
+      if ! has_argument $@; then
+        echo "Password not specified." >&2
+        usage
+        exit 1
+      fi
+      admin_password=$(extract_argument $@)
+      shift
+      ;;
+    -d | -dd | --data-directory)
+      if ! has_argument $@; then
+        echo "Location not specified." >&2
+        usage
+        exit 1
+      fi
+      data_directory=$(realpath $(extract_argument $@))
+      shift
+      ;;
+    -zd | --zomboid-directory)
+      if ! has_argument $@; then
+        echo "Location not specified." >&2
+        usage
+        exit 1
+      fi
+      game_directory=$(realpath $(extract_argument $@))
+      shift
+      ;;
+    -sd | --steam-directory)
+      if ! has_argument $@; then
+        echo "Location not specified." >&2
+        usage
+        exit 1
+      fi
+      steam_directory=$(realpath $(extract_argument $@))
+      shift
+      ;;
+    -u | --update)
+      curl -s -o ./server -L https://raw.githubusercontent.com/Past2l/zomboid-server/main/server
+      chmod +x ./server
+      echo The update is complete, please re-run the code.
+      exit 0
+      ;;
+    *)
+      echo "Invalid option: $1" >&2
+      usage
+      exit 1
+      ;;
+    esac
+    shift
+  done
+}
+
+contains() {
+  [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && echo true || echo false
+}
+
 set_timezone() {
   if [ $TZ ]; then
     ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
@@ -22,35 +144,55 @@ create_group_user() {
   USER=$(getent passwd "$UID" | cut -d: -f1)
 }
 
+#create_directory <steam_directory> <game_directory> <data_directory>
 create_directory() {
-  mkdir -p $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY /home/$USER
-  ln -s $DATA_DIRECTORY /home/$USER/Zomboid
+  mkdir -p $1 $2 $3 /home/$USER
+  if [ -h "/home/$USER/Zomboid" ] || [ -d "/home/$USER/Zomboid" ]; then
+    rm -rf /home/$USER/Zomboid
+  fi
+  ln -s $3 /home/$USER/Zomboid
 }
 
+#download_steamcmd <steam_directory>
 download_steamcmd() {
-  cd $STEAM_DIRECTORY
-  curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+  sudo apt-get install -y lib32gcc-s1 jq &>/dev/null
+  curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxf - -C $1
 }
 
-download_zomboid() {
-  echo -e "@ShutdownOnFailedCommand 1\n@NoPromptForPassword 1\nforce_install_dir $ZOMBOID_DIRECTORY/\nlogin anonymous\napp_update 380870 validate\nquit" >$STEAM_DIRECTORY/zomboid.txt
-  $STEAM_DIRECTORY/steamcmd.sh +runscript $STEAM_DIRECTORY/zomboid.txt
-  cat $ZOMBOID_DIRECTORY/ProjectZomboid64.json | jq --arg ram "-Xmx$RAM" '.vmArgs[1] |= $ram' > ./tmp.json
-  mv ./tmp.json $ZOMBOID_DIRECTORY/ProjectZomboid64.json
+#download_game <game_id> <steam_directory> <game_directory>
+download_game() {
+  echo -e "@ShutdownOnFailedCommand 1\n@NoPromptForPassword 1\nforce_install_dir $3/\nlogin anonymous\napp_update $1 validate\nquit" >$2/download.txt
+  $2/steamcmd.sh +runscript $2/download.txt
 }
 
+#setting_zomboid_server <ram> <game_directory> <data_directory>
+setting_zomboid_server() {
+  cat $2/ProjectZomboid64.json | jq --arg ram "-Xmx$1" '.vmArgs[1] |= $ram' >./tmp.json
+  mv ./tmp.json $2/ProjectZomboid64.json
+}
+
+#set_chown <steam_directory> <game_directory> <data_directory>
 set_chown() {
-  chown -R $USER /home/$USER $STEAM_DIRECTORY $ZOMBOID_DIRECTORY $DATA_DIRECTORY
+  chown -R $USER $1 $2 $3 /home/$USER/Zomboid
 }
 
+#run_server <server_name> <game_directory> <admin_username> <admin_password>
 run_server() {
-  sudo -u $USER $ZOMBOID_DIRECTORY/start-server.sh -servername $SERVER_NAME -adminusername $ADMIN_USERNAME -adminpassword $ADMIN_PASSWORD
+  sudo -u $USER $2/start-server.sh -servername $1 -adminusername $3 -adminpassword $4
 }
+
+remove_steam_folder() {
+  rm -rf /home/$USER/Steam
+}
+
+handle_argument "$@"
 
 set_timezone
 create_group_user
-create_directory
-download_steamcmd
-download_zomboid
-set_chown
-run_server
+create_directory $steam_directory $game_directory $data_directory
+download_steamcmd $steam_directory
+download_game 380870 $steam_directory $game_directory
+setting_zomboid_server $ram $game_directory $data_directory
+set_chown $steam_directory $game_directory $data_directory
+run_server $server_name $game_directory $admin_username $admin_password
+remove_steam_folder
