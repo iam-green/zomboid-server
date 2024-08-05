@@ -6,8 +6,8 @@ server_name="pzserver"
 admin_username="admin"
 admin_password="changeme"
 data_directory=./data
-game_directory=~/.past2l/zomboid
-steam_directory=~/.past2l/steam
+game_directory=~/.iam-green/zomboid
+steam_directory=~/.iam-green/steam
 
 usage() {
   echo "Usage: $0 [OPTIONS]"
@@ -102,7 +102,7 @@ handle_argument() {
       shift
       ;;
     -u | --update)
-      curl -s -o ./server -L https://raw.githubusercontent.com/Past2l/zomboid-server/main/server
+      curl -s -o ./server -L https://raw.githubusercontent.com/iam-green/zomboid-server/main/server
       chmod +x ./server
       echo The update is complete, please re-run the code.
       exit 0

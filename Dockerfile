@@ -1,6 +1,6 @@
 FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
-LABEL org.opencontainers.image.source https://github.com/past2l/zomboid-server
+LABEL org.opencontainers.image.source https://github.com/iam-green/zomboid-server
 ENV UID=1000 \
   GID=1000 \
   DATA_DIRECTORY=/data \
