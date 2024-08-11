@@ -190,9 +190,7 @@ set_chown() {
 
 #run_server <server_name> <game_directory> <admin_username> <admin_password>
 run_server() {
-  sudo -u $USER $game_directory/start-server.sh -servername $1 -adminusername $2 -adminpassword $3 &
-  local pid=$!
-  wait $pid
+  sudo -u $USER $game_directory/start-server.sh -servername $1 -adminusername $2 -adminpassword $3
   rm -rf /home/$USER/Steam
 }
 
