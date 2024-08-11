@@ -169,13 +169,13 @@ create_directory() {
 #download_steamcmd
 download_steamcmd() {
   sudo apt-get install -y lib32gcc-s1 jq &>/dev/null
-  curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxf - -C $steam_directory
+  sudo -u $USER curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxf - -C $steam_directory
 }
 
 #download_game <game_id>
 download_game() {
   echo -e "@ShutdownOnFailedCommand 1\n@NoPromptForPassword 1\nforce_install_dir $game_directory/\nlogin anonymous\napp_update $1 validate\nquit" >$steam_directory/download.txt
-  $steam_directory/steamcmd.sh +runscript $steam_directory/download.txt
+  sudo -u $USER $steam_directory/steamcmd.sh +runscript $steam_directory/download.txt
 }
 
 #setting_zomboid_server <ram>
@@ -200,7 +200,7 @@ set_timezone
 create_group_user
 create_directory
 download_steamcmd
+set_chown
 download_game 380870
 setting_zomboid_server $ram
-set_chown
 run_server $server_name $admin_username $admin_password
